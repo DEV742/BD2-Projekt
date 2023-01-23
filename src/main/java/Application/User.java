@@ -10,6 +10,9 @@ public class User {
 	private String pesel;
 	private String driversLicense;
 
+	public User(String name, String surname, String phone, String email) {
+	}
+
 	public String getName() {
 		return this.name;
 	}

@@ -1,21 +1,26 @@
 package Application;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+
+
 
 public class Application {
 
-	private User user;
-	private boolean isLoggedIn = false;
+	private static User user;
+	private static boolean isLoggedIn = false;
 	private static Map map;
 	private Order order;
 	private User_Type mode;
+	private static DatabaseManager db;
 
 	public User getUser() {
-		return this.user;
+		return user;
 	}
 
-	public void setUser(User user) {
-		this.user = user;
+	public static void setUser(User us) {
+		user = us;
 	}
 
 	public User_Type getMode() {
@@ -25,6 +30,8 @@ public class Application {
 	public void setMode(User_Type mode) {
 		this.mode = mode;
 	}
+
+
 
 	public static void printMap(){
 		System.out.print("   ");
@@ -47,52 +54,71 @@ public class Application {
 	 */
 	public static void main(String[] args) {
 		map = new Map();
+		db = new DatabaseManager();
 		map.initMap(map.mapSize);
 
-		int choice = 0;
+		while(true) {
+			int choice = 0;
 
-		System.out.println("================ Uber App =============");
-		System.out.println("1. Login");
-		System.out.println("2. Exit");
-		Scanner in = new Scanner(System.in);
-		choice = in.nextInt();
-		in.nextLine();
-		switch(choice){
-			case 1:
-				//login
-				String email;
-				String number;
-				String role;
-				System.out.println("Enter your email: ");
-				email = in.nextLine();
-				System.out.println(email);
-				System.out.println("Enter your phone number: ");
-				number = in.nextLine();
-				System.out.println(number);
+			System.out.println("================ Uber App =============");
+			if (!isLoggedIn) {
+				System.out.println("1. Login");
+			}else{
+				System.out.println("1. Show map");
+			}
+			System.out.println("2. Exit");
+			Scanner in = new Scanner(System.in);
+			choice = in.nextInt();
+			in.nextLine();
+			switch (choice) {
+				case 1:
+					if(!isLoggedIn) {
+						//login
+						String email;
+						String number;
+						String role;
+						System.out.println("Enter your email: ");
+						email = in.nextLine();
+						System.out.println(email);
+						System.out.println("Enter your phone number: ");
+						number = in.nextLine();
+						System.out.println(number);
 
-				System.out.println("Specify whether you want to log in as a driver or a client (1 or 0): ");
-				role = in.nextLine();
+						System.out.println("Specify whether you want to log in as a driver or a client (1 or 0): ");
+						role = in.nextLine();
 
-				if (role.equals("0")){
-					boolean result = login(email, number, User_Type.Client);
-					System.out.println(result);
-				}else{
-					//login as a driver
-				}
-				break;
-			case 2:
-				//exit
-				System.exit(0);
-				break;
+						if (role.equals("0")) {
+							boolean result = login(email, number, User_Type.Client);
+							if (result) {
+								System.out.println("You have succesfully logged in");
+							} else {
+								System.out.println("There was an error during your login. Please check the login credentials and try again");
+							}
+						} else {
+							//login as a driver
+						}
+					}else{
+						printMap();
+					}
+					break;
+				case 2:
+					//exit
+					System.exit(0);
+					break;
+			}
 		}
-		printMap();
-
 	}
 
 
 	public static boolean login(String email, String phone, User_Type role) {
-		// TODO - implement Application.login
-		throw new UnsupportedOperationException();
+		ArrayList<String> ls = db.findPersonByCredentials(phone, email);
+		if (ls != null){
+			User us = new User(ls.get(0), ls.get(1), ls.get(2), ls.get(3));
+			setUser(us);
+			isLoggedIn = true;
+			return true;
+		}
+		return false;
 	}
 
 	/**
