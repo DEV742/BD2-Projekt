@@ -1,10 +1,12 @@
 package Application;
 
+import java.util.Scanner;
+
 public class Application {
 
 	private User user;
 	private boolean isLoggedIn = false;
-	private Map map;
+	private static Map map;
 	private Order order;
 	private User_Type mode;
 
@@ -24,12 +26,72 @@ public class Application {
 		this.mode = mode;
 	}
 
+	public static void printMap(){
+		System.out.print("   ");
+		for (int i = 0; i < map.mapSize; i++){
+			System.out.print(i + " ");
+		}
+		System.out.println();
+		for (int i = 0; i < map.mapSize; i++){
+			System.out.print(i + "  ");
+			for (int j = 0; j < map.mapSize; j++){
+				System.out.print(map.map[i][j] + "|");
+			}
+			System.out.println();
+		}
+	}
+
 	/**
 	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO - implement Application.main
+		map = new Map();
+		map.initMap(map.mapSize);
+
+		int choice = 0;
+
+		System.out.println("================ Uber App =============");
+		System.out.println("1. Login");
+		System.out.println("2. Exit");
+		Scanner in = new Scanner(System.in);
+		choice = in.nextInt();
+		in.nextLine();
+		switch(choice){
+			case 1:
+				//login
+				String email;
+				String number;
+				String role;
+				System.out.println("Enter your email: ");
+				email = in.nextLine();
+				System.out.println(email);
+				System.out.println("Enter your phone number: ");
+				number = in.nextLine();
+				System.out.println(number);
+
+				System.out.println("Specify whether you want to log in as a driver or a client (1 or 0): ");
+				role = in.nextLine();
+
+				if (role.equals("0")){
+					boolean result = login(email, number, User_Type.Client);
+					System.out.println(result);
+				}else{
+					//login as a driver
+				}
+				break;
+			case 2:
+				//exit
+				System.exit(0);
+				break;
+		}
+		printMap();
+
+	}
+
+
+	public static boolean login(String email, String phone, User_Type role) {
+		// TODO - implement Application.login
 		throw new UnsupportedOperationException();
 	}
 
@@ -41,7 +103,7 @@ public class Application {
 	 * @param driversLicense
 	 * @param pesel
 	 */
-	public boolean login(String email, String phone, User_Type role, String driversLicense, String pesel) {
+	public static boolean login(String email, String phone, User_Type role, String driversLicense, String pesel) {
 		// TODO - implement Application.login
 		throw new UnsupportedOperationException();
 	}
