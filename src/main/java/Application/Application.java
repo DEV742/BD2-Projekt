@@ -15,10 +15,12 @@ public class Application {
 	private  Map map;
 	private Order order;
 	private User_Type mode;
-	private DatabaseManager db;
+	DatabaseManager db;
 	private static Application app;
 
 	private JFrame frame;
+
+	int registeredDriverID;
 
 	public User getUser() {
 		return user;
@@ -133,8 +135,9 @@ public class Application {
 
 			}
 		}else{
-			boolean result = db.registerNewDriver(name, surname, email, phone, pesel, driversId);
-			if(result){
+			int result = db.registerNewDriver(name, surname, email, phone, pesel, driversId);
+			if(result >= 0){
+				registeredDriverID = result;
 				//registration success dialog
 				showMessageDialog(null, "Konto zostało pomyślnie stworzone", "Sukces", JOptionPane.INFORMATION_MESSAGE);
 				return true;

@@ -84,8 +84,12 @@ public class DatabaseManager {
         return false;
     }
 
-    public boolean registerNewDriver(String name, String surname, String email, String phone, String pesel, String driversID){
+
+    //To select cars that are not occupied by drivers use
+    //SELECT * FROM auto LEFT JOIN kierowca ON (auto.id=kierowca.auto_id) WHERE kierowca.auto_id IS NULL;
+    public int registerNewDriver(String name, String surname, String email, String phone, String pesel, String driversID){
         //PreparedStatement ps = conn.prepareStatement(findPersonByCredentials);
+        int dId = -1;
         try (Connection conn = DriverManager.getConnection(connectionUrl, "Klient", "Klient")) {
             try (PreparedStatement ps = conn.prepareStatement(checkIfClientExists + phone + ";");
                  ResultSet rs = ps.executeQuery();) {
@@ -95,7 +99,7 @@ public class DatabaseManager {
                         //user already exists
                         showMessageDialog(null, "Użytkownik z podanym numerem telefonu już istnieje", "Błąd!", JOptionPane.ERROR_MESSAGE);
 
-                        return false;
+                        return -1;
                     }
                 }
             }
@@ -111,7 +115,7 @@ public class DatabaseManager {
                     //user already exists
                     showMessageDialog(null, "Użytkownik z podanym numerem telefonu już istnieje", "Błąd!", JOptionPane.ERROR_MESSAGE);
 
-                    return false;
+                    return -1;
                 }
             }
 
@@ -119,7 +123,7 @@ public class DatabaseManager {
                 // handle the exception
                 //dialog msg?
                 System.out.println("Exception podczas sprawdzania, czy taki uzytkownik istnieje");
-                return false;
+                return -1;
             }
 
 
@@ -138,6 +142,7 @@ public class DatabaseManager {
                 while (rs.next()) {
                     id = rs.getString("id");
                     System.out.println(id);
+                    dId = Integer.parseInt(id);
                 }
 
                 try( Statement stat = conn.createStatement();){
@@ -152,15 +157,15 @@ public class DatabaseManager {
         } catch (SQLException e) {
             // handle the exception
             //dialog msg?
-            return false;
+            return -1;
         }
 
 
 
         if (findPersonByCredentials(phone, email).size() > 0){
-            return true;
+            return dId;
         }
-        return false;
+        return -1;
     }
     public ArrayList<String> findPersonByCredentials(String phone, String email) {
         try (Connection conn = DriverManager.getConnection(connectionUrl, "Klient", "Klient");
@@ -188,5 +193,49 @@ public class DatabaseManager {
             // handle the exception
             return null;
         }
+    }
+
+    public ArrayList<ArrayList<String>> getFreeCars() {
+        ArrayList<ArrayList<String>> cars = new ArrayList<>();
+
+        try (Connection conn = DriverManager.getConnection(connectionUrl, "Klient", "Klient");
+             PreparedStatement ps = conn.prepareStatement("SELECT auto.id, marka, liczba_miejsc, klimatyzacja, rejestracja FROM auto LEFT JOIN kierowca ON (auto.id=kierowca.auto_id) WHERE kierowca.auto_id IS NULL;");
+             //PreparedStatement ps = conn.prepareStatement(findPersonByCredentials);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                ArrayList<String> carData = new ArrayList<>();
+                carData.add(rs.getString("id"));
+                carData.add(rs.getString("marka"));
+                carData.add(rs.getString("liczba_miejsc"));
+                carData.add(rs.getString("klimatyzacja"));
+                carData.add(rs.getString("rejestracja"));
+                cars.add(carData);
+
+            }
+            System.out.println("Cars: " +cars.size());
+            return cars;
+        } catch (SQLException e) {
+            // handle the exception
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public boolean chooseCar(int registeredDriverID, int carID) {
+        try (Connection conn = DriverManager.getConnection(connectionUrl, "Klient", "Klient")) {
+
+            String clientString;
+            clientString = "UPDATE kierowca SET auto_id="+carID+" WHERE osoba_id = " + registeredDriverID +";";
+            System.out.println(clientString);
+            try (Statement stat = conn.createStatement();) {
+                stat.executeUpdate(clientString);
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+                return false;
+            }
+        }catch(SQLException e){
+            return false;
+        }
+        return true;
     }
 }
