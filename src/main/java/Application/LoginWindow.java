@@ -50,6 +50,15 @@ public class LoginWindow {
                 regForm.init();
             }
         });
+        driverLoginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                DriverLogin lg = new DriverLogin();
+                lg.setApp(app);
+                lg.init();
+                frame.dispose();
+            }
+        });
     }
 
     public void attemptLogin() {

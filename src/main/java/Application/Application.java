@@ -88,6 +88,7 @@ public class Application {
 			User us = new User(ls.get(0), ls.get(1), ls.get(2), ls.get(3));
 			setUser(us);
 			isLoggedIn = true;
+			mode = User_Type.Client;
 			return true;
 		}
 		return false;
@@ -97,13 +98,22 @@ public class Application {
 	 * 
 	 * @param email
 	 * @param phone
-	 * @param role
 	 * @param driversLicense
 	 * @param pesel
 	 */
-	public static boolean login(String email, String phone, User_Type role, String driversLicense, String pesel) {
-		// TODO - implement Application.login
-		throw new UnsupportedOperationException();
+	public boolean login(String email, String phone, String driversLicense, String pesel) {
+		db = new DatabaseManager();
+		System.out.println("Email: " + email);
+		System.out.println("Phone: " + phone);
+		ArrayList<String> ls = this.db.findDriver(email, phone, driversLicense, pesel);
+		if (ls != null){
+			User us = new User(ls.get(0), ls.get(1), ls.get(2), ls.get(3));
+			setUser(us);
+			isLoggedIn = true;
+			mode = User_Type.Driver;
+			return true;
+		}
+		return false;
 	}
 
 	public void logout() {

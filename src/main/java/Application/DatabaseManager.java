@@ -220,6 +220,34 @@ public class DatabaseManager {
             return null;
         }
     }
+    public ArrayList<String> findDriver(String email, String phone, String drivID, String pesel){
+        try (Connection conn = DriverManager.getConnection(connectionUrl, "Klient", "Klient");
+             PreparedStatement ps = conn.prepareStatement(findPersonByCredentials + phone + " AND email=\"" + email + "\" and pesel=" + pesel+";");
+             //PreparedStatement ps = conn.prepareStatement(findPersonByCredentials);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                long id = rs.getLong("id");
+                String name = rs.getString("imie");
+                String lastName = rs.getString("nazwisko");
+                String emailReturn = rs.getString("email");
+                String phoneReturn = rs.getString("nr_telefonu");
+                ArrayList<String> list = new ArrayList<>();
+                list.add(String.valueOf(id));
+                list.add(name);
+                list.add(lastName);
+                list.add(emailReturn);
+                list.add(phoneReturn);
+
+                return list;
+            }
+            return null;
+        } catch (SQLException e) {
+            // handle the exception
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
 
     public boolean chooseCar(int registeredDriverID, int carID) {
         try (Connection conn = DriverManager.getConnection(connectionUrl, "Klient", "Klient")) {
