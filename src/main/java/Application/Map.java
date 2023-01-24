@@ -1,12 +1,14 @@
 package Application;
 
+import java.util.ArrayList;
+
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
 public class Map {
 
-	public int mapSize = 10;
-	public int[][] map;
+	public int mapSize = 5;
+	public String[][] map;
 	private Driver[] drivers;
 
 	public Driver[] getDrivers() {
@@ -18,10 +20,16 @@ public class Map {
 	}
 
 	public void initMap(int size) {
-		map = new int[size][size];
-		for(int i = 0; i < size; i++){
-			for(int j = 0; j < size; j++) {
-				map[i][j] = 0;
+
+		DatabaseManager db = new DatabaseManager();
+		ArrayList<String> streets = db.getStreets();
+		map = new String[size][size];
+		int streetId = 0;
+		if (streets != null) {
+			for (int i = 0; i < size; i++) {
+				for (int j = 0; j < size; j++) {
+					map[i][j] = streets.get(streetId);
+				}
 			}
 		}
 	}

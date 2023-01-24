@@ -119,9 +119,32 @@ public class Application {
 	 * @param pesel
 	 * @param driversId
 	 */
-	public void register(String name, String surname, String email, String phone, User_Type role, String pesel, String driversId) {
-		// TODO - implement Application.register
-		throw new UnsupportedOperationException();
+	public boolean register(String name, String surname, String email, String phone, User_Type role, String pesel, String driversId) {
+		db = new DatabaseManager();
+		if(role.equals(User_Type.Client)) {
+			boolean result = db.registerNewClient(name, surname, email, phone);
+			if(result){
+				//registration success dialog
+				showMessageDialog(null, "Konto zostało pomyślnie stworzone", "Sukces", JOptionPane.INFORMATION_MESSAGE);
+				return true;
+			}else{
+				//registration failure dialog
+				showMessageDialog(null, "Wystąpił błąd podczas założenia nowego konta", "Nieudana rejestracja", JOptionPane.ERROR_MESSAGE);
+
+			}
+		}else{
+			boolean result = db.registerNewDriver(name, surname, email, phone, pesel, driversId);
+			if(result){
+				//registration success dialog
+				showMessageDialog(null, "Konto zostało pomyślnie stworzone", "Sukces", JOptionPane.INFORMATION_MESSAGE);
+				return true;
+			}else{
+				//registration failure dialog
+				showMessageDialog(null, "Wystąpił błąd podczas założenia nowego konta", "Nieudana rejestracja", JOptionPane.ERROR_MESSAGE);
+
+			}
+		}
+		return false;
 	}
 
 	/**

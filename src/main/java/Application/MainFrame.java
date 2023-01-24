@@ -3,7 +3,11 @@ package Application;
 import javax.swing.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+
+import static com.sun.java.accessibility.util.AWTEventMonitor.addWindowListener;
 
 public class MainFrame {
 
@@ -21,6 +25,17 @@ public class MainFrame {
 
     ArrayList<String> streets = new ArrayList<>();
 
+    public MainFrame()
+    {
+        addWindowListener(new WindowAdapter()
+        {
+            public void windowClosing(WindowEvent e)
+            {
+                frame.dispose();
+                System.exit(0); //calling the method is a must
+            }
+        });
+    }
     public void getStreetsList(){
         DatabaseManager db = new DatabaseManager();
         streets = db.getStreets();
@@ -41,6 +56,7 @@ public class MainFrame {
         iconPlace.setIcon(icon);
         iconPlace.setBounds(0, 0, 70, 70);
         getStreetsList();
+        //frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
     }

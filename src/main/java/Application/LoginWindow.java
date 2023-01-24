@@ -1,8 +1,7 @@
 package Application;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 
 import static javax.swing.JOptionPane.showMessageDialog;
 
@@ -12,10 +11,11 @@ public class LoginWindow {
     private JButton zalogujButton;
     private JTextField emailText;
     private JTextField phoneText;
-    private JLabel registerText;
     private JLabel logo;
 
     private JLabel iconPlace;
+    private JButton regButton;
+    private JButton driverLoginButton;
 
     private JFrame frame;
 
@@ -30,22 +30,43 @@ public class LoginWindow {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //login
-                String phoneNum = phoneText.getText();
-                String email = emailText.getText();
-                User_Type type = User_Type.Client;
-
-                boolean result = app.login(email, phoneNum, type);
-                if (result){
-                    showMessageDialog(null, "Logowanie przebiegło pomyślnie", "Pomyślnie zalogowano", JOptionPane.INFORMATION_MESSAGE);
-                    app.showMainFrame();
-                }else{
-                    showMessageDialog(null, "Wystąpił błąd podczas logowania", "Nieudane logowanie", JOptionPane.ERROR_MESSAGE);
-                }
+                attemptLogin();
             }
         });
 
+        emailText.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER){
+                    attemptLogin();
+                }
+            }
+        });
+        regButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                RegistrationForm regForm = new RegistrationForm();
+                regForm.setApp(app);
+                regForm.init();
+            }
+        });
     }
 
+    public void attemptLogin() {
+        String phoneNum = phoneText.getText();
+        String email = emailText.getText();
+        User_Type type = User_Type.Client;
+
+        boolean result = app.login(email, phoneNum, type);
+        if (result){
+            showMessageDialog(null, "Logowanie przebiegło pomyślnie", "Pomyślnie zalogowano", JOptionPane.INFORMATION_MESSAGE);
+            app.showMainFrame();
+            //frame.setVisible(false);
+            frame.dispose();
+        }else{
+            showMessageDialog(null, "Wystąpił błąd podczas logowania", "Nieudane logowanie", JOptionPane.ERROR_MESSAGE);
+        }
+    }
     public void init() {
         frame = new JFrame("żUber");
         frame.setContentPane(loginScreen);
