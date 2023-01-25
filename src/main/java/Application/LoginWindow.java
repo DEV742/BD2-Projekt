@@ -1,5 +1,7 @@
 package Application;
 
+import com.sun.tools.javac.Main;
+
 import javax.swing.*;
 import java.awt.event.*;
 
@@ -69,8 +71,9 @@ public class LoginWindow {
         boolean result = app.login(email, phoneNum, type);
         if (result){
             showMessageDialog(null, "Logowanie przebiegło pomyślnie", "Pomyślnie zalogowano", JOptionPane.INFORMATION_MESSAGE);
-            app.showMainFrame();
-            //frame.setVisible(false);
+            MainFrame mainFrame = new MainFrame();
+            mainFrame.setApp(app);
+            mainFrame.init();
             frame.dispose();
         }else{
             showMessageDialog(null, "Wystąpił błąd podczas logowania", "Nieudane logowanie", JOptionPane.ERROR_MESSAGE);

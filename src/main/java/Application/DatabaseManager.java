@@ -12,19 +12,19 @@ import static javax.swing.JOptionPane.showMessageDialog;
 public class DatabaseManager {
     String findPersonByCredentials = "SELECT * FROM osoba WHERE nr_telefonu=";
     String findPersonByPesel = "SELECT * FROM osoba WHERE pesel=";
-    String addDriver = "INSERT INTO kierowca (osoba_id, prawo_jazdy) VALUES(";
+    String addDriver = "INSERT INTO kierowca (osoba_id, prawo_jazdy) VALUES("; // TODO ewentualnie wyjebać
     String registerClient = "INSERT INTO osoba (imie, nazwisko, nr_telefonu, email) VALUES(";
     String registerDriver = "INSERT INTO osoba (imie, nazwisko, nr_telefonu, email, pesel) VALUES(";
     String checkIfClientExists = "SELECT * FROM osoba WHERE nr_telefonu=";
     String streetsList = "SELECT nazwa FROM ulice;";
-    String connectionUrl = "jdbc:mysql://localhost:3306/apkabd2";
+    String orderList = "Select droga_przejazdu.adres_startowy, droga_przejazdu.adres_koncowy, oplata.kwota, oplata.sposob_oplaty FROM zamowienie INNER JOIN droga_przejazdu ON droga_przejazdu.id = zamowienie.droga_przejazdu_id INNER JOIN oplata ON oplata.id = oplata_id WHERE kierowca_id = (SELECT id FROM kierowca WHERE prawo_jazdy = ";
+    String connectionUrl = "jdbc:mysql://localhost:3306/test3";
 
     public ArrayList<String> getStreets() {
         ArrayList<String> streets = new ArrayList<>();
 
         try (Connection conn = DriverManager.getConnection(connectionUrl, "Klient", "Klient");
              PreparedStatement ps = conn.prepareStatement(streetsList);
-             //PreparedStatement ps = conn.prepareStatement(findPersonByCredentials);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
@@ -34,7 +34,31 @@ public class DatabaseManager {
 
             return streets;
         } catch (SQLException e) {
+            showMessageDialog(null, "błąd bazy danych", "Błąd!", JOptionPane.ERROR_MESSAGE);
             // handle the exception
+            return null;
+        }
+    }
+
+    public ArrayList<String[]> getOrders(String prawo_jazdy){
+        try(Connection conn = DriverManager.getConnection(connectionUrl, "Admin", "Admin");
+            PreparedStatement ps = conn.prepareStatement(orderList + prawo_jazdy + ");");
+            ResultSet rs = ps.executeQuery()){
+
+            ArrayList<String[]> info = new ArrayList<>();
+
+            while(rs.next()) {
+                String[] tempInfo = new String[4];
+                tempInfo[0] = rs.getString("adres_startowy");
+                tempInfo[1] = rs.getString("adres_koncowy");
+                tempInfo[2] = rs.getString("kwota");
+                tempInfo[3] = rs.getString("sposob_oplaty");
+                info.add(tempInfo);
+            }
+
+            return info;
+        } catch (SQLException e){
+            showMessageDialog(null, "błąd bazy danych", "Błąd!", JOptionPane.ERROR_MESSAGE);
             return null;
         }
     }
@@ -83,7 +107,6 @@ public class DatabaseManager {
         }
         return false;
     }
-
 
     //To select cars that are not occupied by drivers use
     //SELECT * FROM auto LEFT JOIN kierowca ON (auto.id=kierowca.auto_id) WHERE kierowca.auto_id IS NULL;
