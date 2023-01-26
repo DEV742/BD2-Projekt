@@ -1,6 +1,8 @@
 package Application;
 
 
+import com.mysql.cj.x.protobuf.MysqlxPrepare;
+
 import javax.swing.*;
 import java.sql.*;
 import java.util.ArrayList;
@@ -18,7 +20,10 @@ public class DatabaseManager {
     String checkIfClientExists = "SELECT * FROM osoba WHERE nr_telefonu=";
     String streetsList = "SELECT nazwa FROM ulice;";
     String orderList = "Select droga_przejazdu.adres_startowy, droga_przejazdu.adres_koncowy, oplata.kwota, oplata.sposob_oplaty FROM zamowienie INNER JOIN droga_przejazdu ON droga_przejazdu.id = zamowienie.droga_przejazdu_id INNER JOIN oplata ON oplata.id = oplata_id WHERE kierowca_id = (SELECT id FROM kierowca WHERE prawo_jazdy = ";
+    String makeOrder = "INSERT INTO `zamowienie` (`oplata_id`, `droga_przejazdu_id`, `klient_id`, `auto_id`, `kierowca_id`, `data`) VALUES(";
     String connectionUrl = "jdbc:mysql://localhost:3306/test3";
+    String makeRoute = "INSERT INTO droga_przejazdu (adres_startowy, adres_koncowy) values('";
+    String makePayment = "INSERT INTO oplata (kwota, sposob_oplaty) VALUES(";
 
     public ArrayList<String> getStreets() {
         ArrayList<String> streets = new ArrayList<>();
@@ -39,6 +44,92 @@ public class DatabaseManager {
             return null;
         }
     }
+
+    public String getLatestRouteID(){
+        try (Connection conn = DriverManager.getConnection(connectionUrl, "Admin", "Admin");
+            PreparedStatement ps = conn.prepareStatement("SELECT MAX(id) FROM droga_przejazdu");
+            ResultSet rs = ps.executeQuery()) {
+            String temp ="";
+            while (rs.next()) {
+                temp = rs.getString("MAX(id)");
+            }
+            return temp;
+        } catch(SQLException e){
+            return null;
+        }
+    }
+
+    public String makeRoute(String start, String koniec) {
+        System.out.println(makeRoute + start + "', '"  + koniec + " ');" + "\n");
+        try (Connection conn = DriverManager.getConnection(connectionUrl, "Admin", "Admin");
+             PreparedStatement ps = conn.prepareStatement(makeRoute + start + "', '"  + koniec + "');");
+             ResultSet rs = ps.executeQuery()) {
+            try (Statement stat = conn.createStatement();) {
+                stat.executeUpdate(makeRoute + start + "', '"  + koniec + " ');");
+            } catch (SQLException e) {
+                showMessageDialog(null, "błąd bazy danych5", "Błąd!", JOptionPane.ERROR_MESSAGE);
+            }
+             return getLatestRouteID();
+        } catch (SQLException e){
+
+        return getLatestRouteID();
+        }
+    }
+
+
+    public String getLatestPaymentID(){
+        try (Connection conn = DriverManager.getConnection(connectionUrl, "Admin", "Admin");
+             PreparedStatement ps = conn.prepareStatement("SELECT MAX(id) FROM oplata");
+             ResultSet rs = ps.executeQuery()) {
+            String temp ="";
+            while (rs.next()) {
+                temp = rs.getString("MAX(id)");
+            }
+            return temp;
+        } catch(SQLException e){
+            return null;
+        }
+    }
+
+    public String makePayment(String kwota, String sposob_oplaty) {
+        System.out.println(makePayment + kwota + ", " + sposob_oplaty + " );" + "\n");
+        try (Connection conn = DriverManager.getConnection(connectionUrl, "Admin", "Admin");
+             PreparedStatement ps = conn.prepareStatement(makePayment + kwota + "', '" + sposob_oplaty +  "' );");
+             ResultSet rs = ps.executeQuery()) {
+            try (Statement stat = conn.createStatement();) {
+                stat.executeUpdate(makePayment + kwota + "', '" + sposob_oplaty +  "' );");
+            } catch (SQLException e) {
+                showMessageDialog(null, "błąd bazy danych5", "Błąd!", JOptionPane.ERROR_MESSAGE);
+            }
+            return getLatestPaymentID();
+        } catch (SQLException e){
+
+            return getLatestPaymentID();
+        }
+    }
+
+    public void makeOrder(String start, String koniec, String klient_id, String auto_id, String kierowca_id, String data, String kwota, String sposob_oplaty){
+        String tempValues = makePayment(kwota, sposob_oplaty) + ", " + makeRoute(start, koniec) + ", " + klient_id + ", " + auto_id + ", " + kierowca_id + ", " + data + ");";
+        System.out.println(makeOrder + tempValues + "\n");
+        try(Connection conn = DriverManager.getConnection(connectionUrl, "Admin", "Admin");
+            PreparedStatement ps = conn.prepareStatement(makeOrder + tempValues)){
+
+            try (Statement stat = conn.createStatement()) {
+                stat.executeUpdate(makeOrder + tempValues);
+
+            } catch (SQLException e) {
+                showMessageDialog(null, "błąd bazy danych6", "Błąd!", JOptionPane.ERROR_MESSAGE);
+            }
+
+            return;
+        } catch (SQLException e) {
+            showMessageDialog(null, "błąd bazy danych", "Błąd!", JOptionPane.ERROR_MESSAGE);
+            // handle the exception
+            return;
+        }
+    }
+
+
 
     public ArrayList<String[]> getOrders(String prawo_jazdy){
         try(Connection conn = DriverManager.getConnection(connectionUrl, "Admin", "Admin");

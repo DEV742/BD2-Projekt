@@ -41,14 +41,15 @@ public class MainFrame {
                 String source = routeSourceSelect.getSelectedItem().toString();
                 String destination = routeDestinationSelect.getSelectedItem().toString();
                 String payMethod = "";
-                if (blikRadioButton.isSelected()) payMethod = blikRadioButton.getText();
-                if (cardRadioButton.isSelected()) payMethod = cardRadioButton.getText();
-                if (cashRadioButton.isSelected()) payMethod = cashRadioButton.getText();
-                // TODO making the order itself
+                if (blikRadioButton.isSelected()) payMethod = "'blik'";
+                if (cardRadioButton.isSelected()) payMethod = "'karta'";
+                if (cashRadioButton.isSelected()) payMethod = "'gotowka'";
+                DatabaseManager db = new DatabaseManager();
+                db.makeOrder(source, destination, "1", "1", "1", "'2022-12-02'", "20", payMethod);
             }
         });
     }
-
+//public void makeOrder(String start, String koniec, String klient_id, String auto_id, String kierowca_id, String data){
     public void getStreetsList() {
         DatabaseManager db = new DatabaseManager();
         streets = db.getStreets();
