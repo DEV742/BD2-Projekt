@@ -1,5 +1,7 @@
 package Application;
 
+import javax.xml.crypto.Data;
+
 public class Order {
 
 	private int id;
@@ -63,6 +65,8 @@ public class Order {
 	}
 
 	public void setDriver(Driver driver) {
+		DatabaseManager db = new DatabaseManager();
+		boolean result = db.addDriverToOrder(getId(), driver.getID());
 		this.driver = driver;
 	}
 

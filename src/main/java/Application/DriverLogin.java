@@ -3,6 +3,7 @@ package Application;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Random;
 
 import static javax.swing.JOptionPane.showMessageDialog;
 
@@ -40,6 +41,11 @@ public class DriverLogin {
                 String pesel = peselText.getText();
                 boolean result = app.login(email, phone, driverId, pesel);
                 if(result){
+                    Driver driver = new Driver();
+                    Random rand = new Random();
+                    driver.setUser(app.getUser());
+                    driver.setX(rand.nextInt(app.getMap().mapSize));
+                    driver.setY(rand.nextInt(app.getMap().mapSize));
                     showMessageDialog(null, "Pomyślnie zalogowano!", "Sukces", JOptionPane.INFORMATION_MESSAGE);
                     DriverUI ui = new DriverUI();
                     ui.setApplication(app);

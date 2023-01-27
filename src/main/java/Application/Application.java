@@ -12,10 +12,17 @@ public class Application {
 
 	private  User user;
 	private boolean isLoggedIn = false;
+
+	public Map getMap() {
+		return map;
+	}
+
 	private  Map map;
 	private Order order;
 	private User_Type mode;
 	DatabaseManager db;
+
+	private Driver driver;
 	private static Application app;
 
 	private JFrame frame;
@@ -105,7 +112,7 @@ public class Application {
 		db = new DatabaseManager();
 		System.out.println("Email: " + email);
 		System.out.println("Phone: " + phone);
-		ArrayList<String> ls = this.db.findDriver(email, phone, driversLicense, pesel);
+		ArrayList<String> ls = this.db.loginDriver(email, phone, driversLicense, pesel);
 		if (ls != null){
 			User us = new User(ls.get(0), ls.get(1), ls.get(2), ls.get(3));
 			setUser(us);

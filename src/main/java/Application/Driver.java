@@ -7,6 +7,16 @@ public class Driver {
 	private boolean isBusy;
 	private User user;
 
+	private int id;
+
+	public void setID(int idn){
+		id = idn;
+	}
+
+	public int getID(){
+		return  id;
+	}
+
 	public int getX() {
 		return this.x;
 	}

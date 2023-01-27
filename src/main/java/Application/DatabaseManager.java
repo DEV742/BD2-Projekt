@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static javax.swing.JOptionPane.showMessageDialog;
 
@@ -21,9 +22,9 @@ public class DatabaseManager {
     String streetsList = "SELECT nazwa FROM ulice;";
     String orderList = "Select droga_przejazdu.adres_startowy, droga_przejazdu.adres_koncowy, oplata.kwota, oplata.sposob_oplaty FROM zamowienie INNER JOIN droga_przejazdu ON droga_przejazdu.id = zamowienie.droga_przejazdu_id INNER JOIN oplata ON oplata.id = oplata_id WHERE kierowca_id = (SELECT id FROM kierowca WHERE prawo_jazdy = ";
     String makeOrder = "INSERT INTO `zamowienie` (`oplata_id`, `droga_przejazdu_id`, `klient_id`, `auto_id`, `kierowca_id`, `data`) VALUES(";
-    String connectionUrl = "jdbc:mysql://localhost:3306/test3";
+    String connectionUrl = "jdbc:mysql://localhost:3306/apkabd2";
     String makeRoute = "INSERT INTO droga_przejazdu (adres_startowy, adres_koncowy) values('";
-    String makePayment = "INSERT INTO oplata (kwota, sposob_oplaty) VALUES(";
+    String makePayment = "INSERT INTO oplata (kwota, sposob_oplaty) VALUES(\"";
 
     public ArrayList<String> getStreets() {
         ArrayList<String> streets = new ArrayList<>();
@@ -61,18 +62,20 @@ public class DatabaseManager {
 
     public String makeRoute(String start, String koniec) {
         System.out.println(makeRoute + start + "', '"  + koniec + " ');" + "\n");
-        try (Connection conn = DriverManager.getConnection(connectionUrl, "Admin", "Admin");
-             PreparedStatement ps = conn.prepareStatement(makeRoute + start + "', '"  + koniec + "');");
-             ResultSet rs = ps.executeQuery()) {
-            try (Statement stat = conn.createStatement();) {
-                stat.executeUpdate(makeRoute + start + "', '"  + koniec + " ');");
-            } catch (SQLException e) {
-                showMessageDialog(null, "błąd bazy danych5", "Błąd!", JOptionPane.ERROR_MESSAGE);
-            }
-             return getLatestRouteID();
-        } catch (SQLException e){
 
-        return getLatestRouteID();
+        try (Connection conn = DriverManager.getConnection(connectionUrl, "Admin", "Admin");
+             PreparedStatement ps = conn.prepareStatement(makeRoute + start + "', '"  + koniec + "');");) {
+            try (Statement stat = conn.createStatement();) {
+                stat.executeUpdate(makeRoute + start + "', '"  + koniec + "');");
+            } catch (SQLException e) {
+
+            }
+            return getLatestRouteID();
+
+        } catch (SQLException e) {
+            // handle the exception
+            //dialog msg?
+            return getLatestRouteID();
         }
     }
 
@@ -92,24 +95,29 @@ public class DatabaseManager {
     }
 
     public String makePayment(String kwota, String sposob_oplaty) {
-        System.out.println(makePayment + kwota + ", " + sposob_oplaty + " );" + "\n");
+        System.out.println(makePayment + kwota + "\", \"" + sposob_oplaty +  "\" );" + "\n");
+
         try (Connection conn = DriverManager.getConnection(connectionUrl, "Admin", "Admin");
-             PreparedStatement ps = conn.prepareStatement(makePayment + kwota + "', '" + sposob_oplaty +  "' );");
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = conn.prepareStatement(makePayment + kwota + "', '" + sposob_oplaty +  "' );")) {
             try (Statement stat = conn.createStatement();) {
-                stat.executeUpdate(makePayment + kwota + "', '" + sposob_oplaty +  "' );");
+                stat.executeUpdate(makePayment + kwota + "\", \"" + sposob_oplaty +  "\" );");
             } catch (SQLException e) {
-                showMessageDialog(null, "błąd bazy danych5", "Błąd!", JOptionPane.ERROR_MESSAGE);
+                System.out.println(e.getMessage());
             }
             return getLatestPaymentID();
-        } catch (SQLException e){
 
+        } catch (SQLException e) {
+            // handle the exception
+            //dialog msg?
             return getLatestPaymentID();
         }
     }
 
-    public void makeOrder(String start, String koniec, String klient_id, String auto_id, String kierowca_id, String data, String kwota, String sposob_oplaty){
-        String tempValues = makePayment(kwota, sposob_oplaty) + ", " + makeRoute(start, koniec) + ", " + klient_id + ", " + auto_id + ", " + kierowca_id + ", " + data + ");";
+    public int makeOrder(String start, String koniec, String klient_id, String auto_id, String kierowca_id, String data, String kwota, String sposob_oplaty){
+        int tempPaymentId = Integer.parseInt(makePayment(kwota,sposob_oplaty));
+
+        int tempRouteId = Integer.parseInt(makeRoute(start,koniec));
+        String tempValues = tempPaymentId + ", " + tempRouteId + ", " + klient_id + ", " + auto_id + ", " + kierowca_id + ", " + data + ");";
         System.out.println(makeOrder + tempValues + "\n");
         try(Connection conn = DriverManager.getConnection(connectionUrl, "Admin", "Admin");
             PreparedStatement ps = conn.prepareStatement(makeOrder + tempValues)){
@@ -119,13 +127,23 @@ public class DatabaseManager {
 
             } catch (SQLException e) {
                 showMessageDialog(null, "błąd bazy danych6", "Błąd!", JOptionPane.ERROR_MESSAGE);
+                System.out.println(e.getMessage());
+                return -1;
             }
 
-            return;
+
+            PreparedStatement ps1 = conn.prepareStatement("SELECT MAX(id) FROM zamowienie");
+            ResultSet rs = ps1.executeQuery();
+            int temp = -1;
+            while (rs.next()) {
+                temp = rs.getInt("MAX(id)");
+            }
+            return temp;
+
         } catch (SQLException e) {
             showMessageDialog(null, "błąd bazy danych", "Błąd!", JOptionPane.ERROR_MESSAGE);
             // handle the exception
-            return;
+            return -1;
         }
     }
 
@@ -363,11 +381,93 @@ public class DatabaseManager {
         }
     }
 
+    public ArrayList<String> loginDriver(String email, String phone, String drivID, String pesel){
+        try (Connection conn = DriverManager.getConnection(connectionUrl, "Klient", "Klient");
+             PreparedStatement ps = conn.prepareStatement(findPersonByCredentials + phone + " AND email=\"" + email + "\" and pesel=" + pesel+";");
+             //PreparedStatement ps = conn.prepareStatement(findPersonByCredentials);
+             ResultSet rs = ps.executeQuery()) {
+            int id = 0;
+            ArrayList<String> list = new ArrayList<>();
+            while (rs.next()) {
+                id = rs.getInt("id");
+                String name = rs.getString("imie");
+                String lastName = rs.getString("nazwisko");
+                String emailReturn = rs.getString("email");
+                String phoneReturn = rs.getString("nr_telefonu");
+
+                list.add(String.valueOf(id));
+                list.add(name);
+                list.add(lastName);
+                list.add(emailReturn);
+                list.add(phoneReturn);
+            }
+
+            String clientString;
+            clientString = "UPDATE kierowca SET aktywny=1 WHERE osoba_id = " + id +";";
+            System.out.println(clientString);
+            try (Statement stat = conn.createStatement();) {
+                stat.executeUpdate(clientString);
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+                return null;
+            }
+
+            return list;
+        } catch (SQLException e) {
+            // handle the exception
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
     public boolean chooseCar(int registeredDriverID, int carID) {
         try (Connection conn = DriverManager.getConnection(connectionUrl, "Klient", "Klient")) {
 
             String clientString;
             clientString = "UPDATE kierowca SET auto_id="+carID+" WHERE osoba_id = " + registeredDriverID +";";
+            System.out.println(clientString);
+            try (Statement stat = conn.createStatement();) {
+                stat.executeUpdate(clientString);
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+                return false;
+            }
+        }catch(SQLException e){
+            return false;
+        }
+        return true;
+    }
+
+    public ArrayList<Driver> getAvailableDrivers() {
+        ArrayList<Driver> drivers = new ArrayList<Driver>();
+
+        try (Connection conn = DriverManager.getConnection(connectionUrl, "Klient", "Klient");
+             PreparedStatement ps = conn.prepareStatement("SELECT kierowca.id, osoba.imie FROM kierowca LEFT JOIN osoba ON (kierowca.osoba_id=osoba.id) WHERE kierowca.aktywny=1;");
+             //PreparedStatement ps = conn.prepareStatement(findPersonByCredentials);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Driver driv = new Driver();
+                User us = new User(rs.getString("osoba.imie"), "", "", "");
+                driv.setID(rs.getInt("kierowca.id"));
+
+                //Random rand = new Random();
+                driv.setUser(us);
+                drivers.add(driv);
+            }
+            System.out.println("Drivers: " +drivers.size());
+            return drivers;
+        } catch (SQLException e) {
+            // handle the exception
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    public boolean addDriverToOrder(int orderID, int driverID) {
+        try (Connection conn = DriverManager.getConnection(connectionUrl, "Klient", "Klient")) {
+
+            String clientString;
+            clientString = "UPDATE zamowienie SET kierowca_id="+driverID+" WHERE id = " + orderID +";";
             System.out.println(clientString);
             try (Statement stat = conn.createStatement();) {
                 stat.executeUpdate(clientString);
